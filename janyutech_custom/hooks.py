@@ -5,6 +5,14 @@ app_description = "Custom app to make all the custom changes for Janyu Technolog
 app_email = "mradulmishra010@gmail.com"
 app_license = "mit"
 
+doc_events = {
+    "Item": {
+        "autoname": "janyutech_custom.custom_scripts.item_autoname.autoname",
+    },
+}
+
+
+
 # Apps
 # ------------------
 

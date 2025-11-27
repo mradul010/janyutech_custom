@@ -9,6 +9,9 @@ doc_events = {
     "Item": {
         "autoname": "janyutech_custom.custom_scripts.item_autoname.autoname",
     },
+    "Purchase Order": {
+        "validate": "janyutech_custom.api.apply_custom_gst"
+    },
 }
 
 

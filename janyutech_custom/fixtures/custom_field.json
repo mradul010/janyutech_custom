@@ -1,0 +1,12 @@
+[
+    {
+        "doctype": "Custom Field",
+        "dt": "Project",
+        "fieldname": "project_code",
+        "fieldtype": "Data",
+        "insert_after": "project_name",
+        "label": "Project Code",
+        "name": "Project-project_code",
+        "reqd": 0
+    }
+]

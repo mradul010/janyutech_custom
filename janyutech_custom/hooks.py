@@ -5,6 +5,11 @@ app_description = "Custom app to make all the custom changes for Janyu Technolog
 app_email = "mradulmishra010@gmail.com"
 app_license = "mit"
 
+fixtures = [
+    {"dt": "Custom Field", "filters": [["name", "in", ["Project-project_code"]]]},
+    {"dt": "Property Setter", "filters": [["name", "in", ["Project-search_fields"]]]},
+]
+
 doc_events = {
     "Item": {
         "autoname": "janyutech_custom.custom_scripts.item_autoname.autoname",
@@ -12,6 +17,10 @@ doc_events = {
     "Purchase Order": {
         "validate": "janyutech_custom.api.apply_custom_gst"
     },
+}
+
+jinja = {
+    "methods": "janyutech_custom.purchase_receipt",
 }
 
 
@@ -252,4 +261,3 @@ doc_events = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-

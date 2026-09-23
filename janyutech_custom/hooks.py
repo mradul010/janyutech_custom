@@ -31,8 +31,8 @@ doctype_js = {
     "Purchase Receipt": "public/js/purchase_company_address.js",
 }
 
-jinja = {
-    "methods": "janyutech_custom.purchase_receipt",
+# jinja = {
+#     "methods": "janyutech_custom.purchase_receipt",
 }
 
 

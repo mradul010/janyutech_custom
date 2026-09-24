@@ -11,10 +11,7 @@ doc_events = {
         "validate": "janyutech_custom.custom_scripts.item_validation.validate_unique_item_name",
     },
     "Purchase Order": {
-        "validate": [
-            "janyutech_custom.api.apply_custom_gst",
-            "janyutech_custom.company_address.set_company_addresses_from_series",
-        ],
+        "validate": "janyutech_custom.company_address.set_company_addresses_from_series",
     },
     "Purchase Receipt": {
         "validate": "janyutech_custom.company_address.set_company_addresses_from_series",

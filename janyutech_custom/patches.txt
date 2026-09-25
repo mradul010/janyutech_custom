@@ -3,4 +3,5 @@
 [post_model_sync]
 janyutech_custom.patches.link_item_categories
 janyutech_custom.patches.unrequire_item_code
+janyutech_custom.patches.fix_purchase_receipt_po_no_print_format
 # Patches added in this section will be executed after doctypes are migrated

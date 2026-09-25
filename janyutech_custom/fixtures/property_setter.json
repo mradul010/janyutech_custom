@@ -8,5 +8,13 @@
         "property": "reqd",
         "property_type": "Check",
         "value": "0"
+        "doctype_or_field": "DocType",
+        "doc_type": "Project",
+        "field_name": null,
+        "name": "Project-search_fields",
+        "property": "search_fields",
+        "property_type": "Data",
+        "value": "project_name,project_code,customer,status,priority,is_active"
+
     }
 ]

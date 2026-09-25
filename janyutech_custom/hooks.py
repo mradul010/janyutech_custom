@@ -7,6 +7,8 @@ app_license = "mit"
 
 fixtures = [
     {"dt": "Property Setter", "filters": [["name", "in", ["Item-item_code-reqd"]]]},
+    {"dt": "Custom Field", "filters": [["name", "in", ["Project-project_code"]]]},
+    {"dt": "Property Setter", "filters": [["name", "in", ["Project-search_fields"]]]},
 ]
 
 doc_events = {
@@ -26,6 +28,10 @@ doctype_js = {
     "Purchase Order": "public/js/purchase_company_address.js",
     "Purchase Receipt": "public/js/purchase_company_address.js",
 }
+
+# jinja = {
+#     "methods": "janyutech_custom.purchase_receipt",
+#}
 
 
 

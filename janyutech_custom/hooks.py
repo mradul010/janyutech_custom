@@ -6,13 +6,14 @@ app_email = "mradulmishra010@gmail.com"
 app_license = "mit"
 
 fixtures = [
+    {"dt": "Property Setter", "filters": [["name", "in", ["Item-item_code-reqd"]]]},
     {"dt": "Custom Field", "filters": [["name", "in", ["Project-project_code"]]]},
     {"dt": "Property Setter", "filters": [["name", "in", ["Project-search_fields"]]]},
 ]
 
 doc_events = {
     "Item": {
-        "autoname": "janyutech_custom.custom_scripts.item_autoname.autoname",
+        "before_naming": "janyutech_custom.custom_scripts.item_autoname.before_naming",
         "validate": "janyutech_custom.custom_scripts.item_validation.validate_unique_item_name",
     },
     "Purchase Order": {

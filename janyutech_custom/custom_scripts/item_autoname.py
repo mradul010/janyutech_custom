@@ -1,25 +1,35 @@
 import frappe
 
-def autoname(doc, method):
+
+def generate_item_code(doc):
     """
-    Autoname for Item as: <MAIN_ABBR>-<SUB_ABBR>-<seq>
+    Generate Item Code as: <MAIN_ABBR>-<SUB_ABBR>-<seq>
     Example: MM-HM-001
 
     This implementation ensures the sequence is maintained per (main_abbr, sub_abbr) prefix.
     """
+    if doc.get("item_code"):
+        return doc.item_code
+
     # Ensure categories present
     main = doc.get("main_category")
     sub = doc.get("sub_category")
 
-    if not main or not sub:
-        frappe.throw("Please select Main Category and Sub Category before saving.")
+    if not main:
+        frappe.throw("Main Category is required to generate Item Code.")
+
+    if not sub:
+        frappe.throw("Sub Category is required to generate Item Code.")
 
     # Fetch abbreviations from linked doctypes
     main_abbr = frappe.db.get_value("Item Main Category", main, "abbreviation") or ""
     sub_abbr = frappe.db.get_value("Item Sub Category", sub, "abbreviation") or ""
 
-    if not main_abbr or not sub_abbr:
-        frappe.throw("Abbreviation missing on Main/Sub Category. Please fill 'abbreviation' on the category records.")
+    if not main_abbr:
+        frappe.throw("Main Category Abbreviation is missing.")
+
+    if not sub_abbr:
+        frappe.throw("Sub Category Abbreviation is missing.")
 
     # Build prefix like "MM-HM"
     prefix = f"{main_abbr}-{sub_abbr}"
@@ -57,7 +67,14 @@ def autoname(doc, method):
         from frappe.model.naming import make_autoname
         candidate = make_autoname(f"{prefix}-.###")
 
-    # assign name and item_code (if present)
-    doc.name = candidate
-    if hasattr(doc, "item_code"):
-        doc.item_code = candidate
+    return candidate
+
+
+def before_naming(doc, method=None):
+    doc.item_code = generate_item_code(doc)
+
+
+def autoname(doc, method=None):
+    item_code = generate_item_code(doc)
+    doc.name = item_code
+    doc.item_code = item_code

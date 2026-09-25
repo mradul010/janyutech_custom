@@ -1,6 +1,13 @@
 [
     {
         "doctype": "Property Setter",
+        "doctype_or_field": "DocField",
+        "doc_type": "Item",
+        "field_name": "item_code",
+        "name": "Item-item_code-reqd",
+        "property": "reqd",
+        "property_type": "Check",
+        "value": "0"
         "doctype_or_field": "DocType",
         "doc_type": "Project",
         "field_name": null,
@@ -8,5 +15,6 @@
         "property": "search_fields",
         "property_type": "Data",
         "value": "project_name,project_code,customer,status,priority,is_active"
+
     }
 ]

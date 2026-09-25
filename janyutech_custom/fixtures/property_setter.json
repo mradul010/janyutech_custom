@@ -1,0 +1,12 @@
+[
+    {
+        "doctype": "Property Setter",
+        "doctype_or_field": "DocField",
+        "doc_type": "Item",
+        "field_name": "item_code",
+        "name": "Item-item_code-reqd",
+        "property": "reqd",
+        "property_type": "Check",
+        "value": "0"
+    }
+]

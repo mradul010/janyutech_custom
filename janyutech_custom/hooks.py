@@ -30,7 +30,7 @@ doctype_js = {
 
 # jinja = {
 #     "methods": "janyutech_custom.purchase_receipt",
-}
+#}
 
 
 

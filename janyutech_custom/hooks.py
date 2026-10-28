@@ -7,6 +7,19 @@ app_license = "mit"
 
 fixtures = [
     {"dt": "Property Setter", "filters": [["name", "in", ["Item-item_code-reqd"]]]},
+    {
+        "dt": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Purchase Order-custom_requested_by",
+                    "Purchase Receipt-custom_requested_by",
+                ],
+            ]
+        ],
+    },
     {"dt": "Custom Field", "filters": [["name", "in", ["Project-project_code"]]]},
     {"dt": "Property Setter", "filters": [["name", "in", ["Project-search_fields"]]]},
 ]
@@ -17,10 +30,16 @@ doc_events = {
         "validate": "janyutech_custom.custom_scripts.item_validation.validate_unique_item_name",
     },
     "Purchase Order": {
-        "validate": "janyutech_custom.company_address.set_company_addresses_from_series",
+        "validate": [
+            "janyutech_custom.company_address.set_company_addresses_from_series",
+            "janyutech_custom.material_request_requester.set_requested_by",
+        ],
     },
     "Purchase Receipt": {
-        "validate": "janyutech_custom.company_address.set_company_addresses_from_series",
+        "validate": [
+            "janyutech_custom.company_address.set_company_addresses_from_series",
+            "janyutech_custom.material_request_requester.set_requested_by",
+        ],
     },
 }
 

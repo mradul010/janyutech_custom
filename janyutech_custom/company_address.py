@@ -82,18 +82,45 @@ def get_company_address(company, location, address_type):
 
 
 def set_company_addresses_from_series(doc, method=None):
-    addresses = get_company_addresses_for_series(
+    current_addresses = get_company_addresses_for_series(
         doc.doctype,
         doc.get("company"),
         doc.get("naming_series"),
     )
-    if not addresses:
+    if not current_addresses:
         return
 
-    if addresses.get("billing_address"):
-        doc.billing_address = addresses.get("billing_address")
-        doc.billing_address_display = addresses.get("billing_address_display") or ""
+    previous_doc = doc.get_doc_before_save()
+    series_changed = bool(
+        previous_doc and previous_doc.get("naming_series") != doc.get("naming_series")
+    )
+    previous_addresses = {}
+    if series_changed:
+        previous_addresses = get_company_addresses_for_series(
+            doc.doctype,
+            doc.get("company"),
+            previous_doc.get("naming_series"),
+        )
 
-    if addresses.get("shipping_address"):
-        doc.shipping_address = addresses.get("shipping_address")
-        doc.shipping_address_display = addresses.get("shipping_address_display") or ""
+    if current_addresses.get("billing_address") and _should_apply_address(
+        doc.get("billing_address"),
+        previous_addresses.get("billing_address"),
+        series_changed,
+    ):
+        doc.billing_address = current_addresses.get("billing_address")
+        doc.billing_address_display = current_addresses.get("billing_address_display") or ""
+
+    if current_addresses.get("shipping_address") and _should_apply_address(
+        doc.get("shipping_address"),
+        previous_addresses.get("shipping_address"),
+        series_changed,
+    ):
+        doc.shipping_address = current_addresses.get("shipping_address")
+        doc.shipping_address_display = current_addresses.get("shipping_address_display") or ""
+
+
+def _should_apply_address(current_address, previous_automatic_address, series_changed):
+    if not current_address:
+        return True
+
+    return series_changed and current_address == previous_automatic_address

@@ -1,0 +1,22 @@
+[
+    {
+        "doctype": "Custom Field",
+        "dt": "Purchase Order",
+        "fieldname": "custom_requested_by",
+        "fieldtype": "Data",
+        "insert_after": "supplier_name",
+        "label": "Requested By",
+        "name": "Purchase Order-custom_requested_by",
+        "read_only": 1
+    },
+    {
+        "doctype": "Custom Field",
+        "dt": "Purchase Receipt",
+        "fieldname": "custom_requested_by",
+        "fieldtype": "Data",
+        "insert_after": "supplier_name",
+        "label": "Requested By",
+        "name": "Purchase Receipt-custom_requested_by",
+        "read_only": 1
+    }
+]

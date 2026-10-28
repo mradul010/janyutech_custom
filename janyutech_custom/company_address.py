@@ -15,6 +15,11 @@ SERIES_LOCATION_MAP = {
     },
 }
 
+CUSTOM_PURCHASE_PRINT_FORMATS = {
+    "Purchase Order": "Purchase Order Custom",
+    "Purchase Receipt": "Purchase Receipt Custom",
+}
+
 
 def normalize_location(value):
     return re.sub(r"\s+", " ", frappe.as_unicode(value or "").strip()).casefold()
@@ -117,6 +122,19 @@ def set_company_addresses_from_series(doc, method=None):
     ):
         doc.shipping_address = current_addresses.get("shipping_address")
         doc.shipping_address_display = current_addresses.get("shipping_address_display") or ""
+
+
+def set_quantity_uom_order(doc, method=None, print_settings=None):
+    """Render quantity before UOM for the custom PO and PR print formats only."""
+    if not print_settings:
+        return
+
+    print_format = frappe.form_dict.get("format")
+    if not print_format:
+        print_format = frappe.get_meta(doc.doctype).default_print_format
+
+    if print_format == CUSTOM_PURCHASE_PRINT_FORMATS.get(doc.doctype):
+        print_settings["print_uom_after_quantity"] = 1
 
 
 def _should_apply_address(current_address, previous_automatic_address, series_changed):

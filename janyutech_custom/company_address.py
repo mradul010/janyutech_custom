@@ -15,6 +15,22 @@ SERIES_LOCATION_MAP = {
     },
 }
 
+LETTER_HEAD_MAP = {
+    "Purchase Order": {
+        "PUR-ORD-.YYYY.-": None,
+        "PUR-ORD-CM-.YYYY.-": "JANYU - Coimbatore",
+    },
+    "Purchase Receipt": {
+        "PR-.YYYY.-": None,
+        "PR-CM-.YYYY.-": "JANYU - Coimbatore",
+    },
+}
+
+CUSTOM_PURCHASE_PRINT_FORMATS = {
+    "Purchase Order": "Purchase Order Custom",
+    "Purchase Receipt": "Purchase Receipt Custom",
+}
+
 
 def normalize_location(value):
     return re.sub(r"\s+", " ", frappe.as_unicode(value or "").strip()).casefold()
@@ -22,6 +38,19 @@ def normalize_location(value):
 
 def get_location_from_series(doctype, naming_series):
     return SERIES_LOCATION_MAP.get(doctype, {}).get(naming_series)
+
+
+def get_letter_head_for_series(doctype, company, naming_series):
+    configured_letter_head = LETTER_HEAD_MAP.get(doctype, {}).get(naming_series)
+    if configured_letter_head:
+        if frappe.db.exists("Letter Head", configured_letter_head):
+            return configured_letter_head
+        return None
+
+    return (
+        frappe.db.get_value("Company", company, "default_letter_head")
+        or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
+    )
 
 
 @frappe.whitelist()
@@ -32,6 +61,7 @@ def get_company_addresses_for_series(doctype, company, naming_series):
 
     result = {
         "location": location,
+        "letter_head": get_letter_head_for_series(doctype, company, naming_series),
         "billing_address": None,
         "billing_address_display": "",
         "shipping_address": None,
@@ -102,6 +132,14 @@ def set_company_addresses_from_series(doc, method=None):
             previous_doc.get("naming_series"),
         )
 
+    current_letter_head = get_letter_head_for_series(
+        doc.doctype,
+        doc.get("company"),
+        doc.get("naming_series"),
+    )
+    if current_letter_head and (not doc.get("letter_head") or series_changed):
+        doc.letter_head = current_letter_head
+
     if current_addresses.get("billing_address") and _should_apply_address(
         doc.get("billing_address"),
         previous_addresses.get("billing_address"),
@@ -117,6 +155,19 @@ def set_company_addresses_from_series(doc, method=None):
     ):
         doc.shipping_address = current_addresses.get("shipping_address")
         doc.shipping_address_display = current_addresses.get("shipping_address_display") or ""
+
+
+def set_quantity_uom_order(doc, method=None, print_settings=None):
+    """Render quantity before UOM for the custom PO and PR print formats only."""
+    if not print_settings:
+        return
+
+    print_format = frappe.form_dict.get("format")
+    if not print_format:
+        print_format = frappe.get_meta(doc.doctype).default_print_format
+
+    if print_format == CUSTOM_PURCHASE_PRINT_FORMATS.get(doc.doctype):
+        print_settings["print_uom_after_quantity"] = 1
 
 
 def _should_apply_address(current_address, previous_automatic_address, series_changed):

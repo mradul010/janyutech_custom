@@ -34,12 +34,14 @@ doc_events = {
             "janyutech_custom.company_address.set_company_addresses_from_series",
             "janyutech_custom.material_request_requester.set_requested_by",
         ],
+        "before_print": "janyutech_custom.company_address.set_quantity_uom_order",
     },
     "Purchase Receipt": {
         "validate": [
             "janyutech_custom.company_address.set_company_addresses_from_series",
             "janyutech_custom.material_request_requester.set_requested_by",
         ],
+        "before_print": "janyutech_custom.company_address.set_quantity_uom_order",
     },
 }
 

@@ -4,4 +4,5 @@
 janyutech_custom.patches.link_item_categories
 janyutech_custom.patches.unrequire_item_code
 janyutech_custom.patches.fix_purchase_receipt_po_no_print_format
+janyutech_custom.patches.ensure_coimbatore_letter_head
 # Patches added in this section will be executed after doctypes are migrated

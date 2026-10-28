@@ -34,7 +34,9 @@
 			billing_address: frm.doc.billing_address,
 			shipping_address: frm.doc.shipping_address,
 		};
+		const letter_head_at_request = frm.doc.letter_head;
 		const automatic_addresses = frm._janyu_automatic_addresses || {};
+		const automatic_letter_head = frm._janyu_automatic_letter_head;
 
 		frappe.call({
 			method: "janyutech_custom.company_address.get_company_addresses_for_series",
@@ -51,6 +53,18 @@
 				if (!r.message || !r.message.location) {
 					frm._janyu_company_address_lookup_key = null;
 					return;
+				}
+
+				if (
+					r.message.letter_head &&
+					(!frm.doc.letter_head ||
+						frm.doc.letter_head === automatic_letter_head ||
+						(force && frm.doc.letter_head === letter_head_at_request))
+				) {
+					frm.set_value("letter_head", r.message.letter_head);
+				}
+				if (r.message.letter_head && frm.doc.letter_head === r.message.letter_head) {
+					frm._janyu_automatic_letter_head = r.message.letter_head;
 				}
 
 				if (
@@ -82,9 +96,7 @@
 		frappe.ui.form.on(doctype, {
 			refresh: refresh_requested_by,
 			onload: function (frm) {
-				if (!frm.doc.billing_address && !frm.doc.shipping_address) {
-					apply_company_addresses(frm, false);
-				}
+				apply_company_addresses(frm, false);
 			},
 			company: function (frm) {
 				apply_company_addresses(frm, false);

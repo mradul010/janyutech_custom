@@ -15,6 +15,17 @@ SERIES_LOCATION_MAP = {
     },
 }
 
+LETTER_HEAD_MAP = {
+    "Purchase Order": {
+        "PUR-ORD-.YYYY.-": None,
+        "PUR-ORD-CM-.YYYY.-": "JANYU - Coimbatore",
+    },
+    "Purchase Receipt": {
+        "PR-.YYYY.-": None,
+        "PR-CM-.YYYY.-": "JANYU - Coimbatore",
+    },
+}
+
 CUSTOM_PURCHASE_PRINT_FORMATS = {
     "Purchase Order": "Purchase Order Custom",
     "Purchase Receipt": "Purchase Receipt Custom",
@@ -29,6 +40,19 @@ def get_location_from_series(doctype, naming_series):
     return SERIES_LOCATION_MAP.get(doctype, {}).get(naming_series)
 
 
+def get_letter_head_for_series(doctype, company, naming_series):
+    configured_letter_head = LETTER_HEAD_MAP.get(doctype, {}).get(naming_series)
+    if configured_letter_head:
+        if frappe.db.exists("Letter Head", configured_letter_head):
+            return configured_letter_head
+        return None
+
+    return (
+        frappe.db.get_value("Company", company, "default_letter_head")
+        or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
+    )
+
+
 @frappe.whitelist()
 def get_company_addresses_for_series(doctype, company, naming_series):
     location = get_location_from_series(doctype, naming_series)
@@ -37,6 +61,7 @@ def get_company_addresses_for_series(doctype, company, naming_series):
 
     result = {
         "location": location,
+        "letter_head": get_letter_head_for_series(doctype, company, naming_series),
         "billing_address": None,
         "billing_address_display": "",
         "shipping_address": None,
@@ -106,6 +131,14 @@ def set_company_addresses_from_series(doc, method=None):
             doc.get("company"),
             previous_doc.get("naming_series"),
         )
+
+    current_letter_head = get_letter_head_for_series(
+        doc.doctype,
+        doc.get("company"),
+        doc.get("naming_series"),
+    )
+    if current_letter_head and (not doc.get("letter_head") or series_changed):
+        doc.letter_head = current_letter_head
 
     if current_addresses.get("billing_address") and _should_apply_address(
         doc.get("billing_address"),

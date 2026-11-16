@@ -17,7 +17,9 @@
         "insert_after": "supplier_name",
         "label": "Requested By",
         "name": "Purchase Receipt-custom_requested_by",
-        "read_only": 1,
+        "read_only": 1
+    },
+    {
         "dt": "Project",
         "fieldname": "project_code",
         "fieldtype": "Data",

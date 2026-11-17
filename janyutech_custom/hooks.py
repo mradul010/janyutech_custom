@@ -15,7 +15,9 @@ fixtures = [
                 "in",
                 [
                     "Purchase Order-custom_requested_by",
+                    "Purchase Order-custom_purchase_req_no",
                     "Purchase Receipt-custom_requested_by",
+                    "Purchase Receipt-custom_purchase_req_no",
                 ],
             ]
         ],

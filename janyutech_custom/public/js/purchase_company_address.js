@@ -1,10 +1,10 @@
 (function () {
-	function refresh_requested_by(frm) {
+	function refresh_requested_values(frm) {
 		const request_id = (frm._janyu_requested_by_request_id || 0) + 1;
 		frm._janyu_requested_by_request_id = request_id;
 
 		frappe.call({
-			method: "janyutech_custom.material_request_requester.get_requested_by",
+			method: "janyutech_custom.material_request_requester.get_purchase_request_values",
 			args: {
 				doctype: frm.doc.doctype,
 				name: frm.doc.name,
@@ -15,9 +15,22 @@
 					return;
 				}
 
-				frm.set_value("custom_requested_by", r.message || "");
+				const values = r.message || {};
+				set_automatic_value(frm, "custom_requested_by", values.requested_by);
+				set_automatic_value(frm, "custom_purchase_req_no", values.purchase_req_no);
 			},
 		});
+	}
+
+	function set_automatic_value(frm, fieldname, value) {
+		const current_value = frm.doc[fieldname] || "";
+		const previous_automatic_value = frm[`_janyu_automatic_${fieldname}`] || "";
+		if (!current_value || current_value === previous_automatic_value) {
+			frm.set_value(fieldname, value || "");
+			frm[`_janyu_automatic_${fieldname}`] = value || "";
+		} else if (value === current_value) {
+			frm[`_janyu_automatic_${fieldname}`] = current_value;
+		}
 	}
 
 	function apply_company_addresses(frm, force) {
@@ -94,7 +107,7 @@
 
 	function register_purchase_address_handlers(doctype) {
 		frappe.ui.form.on(doctype, {
-			refresh: refresh_requested_by,
+			refresh: refresh_requested_values,
 			onload: function (frm) {
 				apply_company_addresses(frm, false);
 			},
@@ -104,19 +117,19 @@
 			naming_series: function (frm) {
 				apply_company_addresses(frm, true);
 			},
-			items_add: refresh_requested_by,
-			items_remove: refresh_requested_by,
-			items_move: refresh_requested_by,
+			items_add: refresh_requested_values,
+			items_remove: refresh_requested_values,
+			items_move: refresh_requested_values,
 		});
 	}
 
 	function register_item_handlers(doctype) {
 		frappe.ui.form.on(doctype, {
-			material_request: refresh_requested_by,
-			material_request_item: refresh_requested_by,
-			purchase_order: refresh_requested_by,
-			purchase_order_item: refresh_requested_by,
-			item_code: refresh_requested_by,
+			material_request: refresh_requested_values,
+			material_request_item: refresh_requested_values,
+			purchase_order: refresh_requested_values,
+			purchase_order_item: refresh_requested_values,
+			item_code: refresh_requested_values,
 		});
 	}
 

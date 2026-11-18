@@ -108,6 +108,9 @@
 	function register_purchase_address_handlers(doctype) {
 		frappe.ui.form.on(doctype, {
 			refresh: refresh_requested_values,
+			total: recalculate_manual_payment_schedule,
+			transaction_date: refresh_payment_schedule_terms,
+			payment_schedule_add: refresh_payment_schedule_terms,
 			onload: function (frm) {
 				apply_company_addresses(frm, false);
 			},
@@ -137,4 +140,216 @@
 	register_purchase_address_handlers("Purchase Receipt");
 	register_item_handlers("Purchase Order Item");
 	register_item_handlers("Purchase Receipt Item");
+
+	frappe.ui.form.on("Payment Schedule", {
+		payment_term: function (frm, cdt, cdn) {
+			if (frm.doc.doctype !== "Purchase Order") {
+				return;
+			}
+
+			fetch_payment_term_details(frm, cdt, cdn);
+		},
+		invoice_portion: function (frm, cdt, cdn) {
+			if (frm.doc.doctype !== "Purchase Order" || is_updating_payment_schedule(frm)) {
+				return;
+			}
+
+			const row = locals[cdt][cdn];
+			if (!row) {
+				return;
+			}
+			with_payment_schedule_update(frm, function () {
+				set_payment_schedule_value(
+					frm,
+					cdt,
+					cdn,
+					"payment_amount",
+					calculate_manual_payment_amount(frm, row)
+				);
+				set_payment_schedule_base_amount(frm, cdt, cdn);
+			});
+		},
+		payment_amount: function (frm, cdt, cdn) {
+			if (frm.doc.doctype !== "Purchase Order" || is_updating_payment_schedule(frm)) {
+				return;
+			}
+
+			const row = locals[cdt][cdn];
+			if (!row) {
+				return;
+			}
+			with_payment_schedule_update(frm, function () {
+				set_payment_schedule_value(
+					frm,
+					cdt,
+					cdn,
+					"invoice_portion",
+					calculate_manual_invoice_portion(frm, row)
+				);
+				set_payment_schedule_base_amount(frm, cdt, cdn);
+			});
+		},
+	});
+
+	function recalculate_manual_payment_schedule(frm) {
+		if (frm.doc.doctype !== "Purchase Order") {
+			return;
+		}
+
+		with_payment_schedule_update(frm, function () {
+			(frm.doc.payment_schedule || []).forEach(function (row) {
+				set_payment_schedule_value(
+					frm,
+					row.doctype,
+					row.name,
+					"invoice_portion",
+					calculate_manual_invoice_portion(frm, row)
+				);
+				set_payment_schedule_base_amount(frm, row.doctype, row.name);
+			});
+		});
+	}
+
+	function refresh_payment_schedule_terms(frm, cdt, cdn) {
+		if (frm.doc.doctype !== "Purchase Order") {
+			return;
+		}
+
+		if (cdt && cdn) {
+			fetch_payment_term_details(frm, cdt, cdn);
+			return;
+		}
+
+		(frm.doc.payment_schedule || []).forEach(function (row) {
+			if (row.payment_term) {
+				fetch_payment_term_details(frm, row.doctype, row.name);
+			}
+		});
+	}
+
+	function fetch_payment_term_details(frm, cdt, cdn) {
+		const row = locals[cdt] && locals[cdt][cdn];
+		if (!row || !row.payment_term) {
+			return;
+		}
+
+		frm._janyu_payment_term_request_ids = frm._janyu_payment_term_request_ids || {};
+		const request_id = (frm._janyu_payment_term_request_ids[cdn] || 0) + 1;
+		frm._janyu_payment_term_request_ids[cdn] = request_id;
+
+		frappe.call({
+			method: "erpnext.controllers.accounts_controller.get_payment_term_details",
+			args: {
+				term: row.payment_term,
+				bill_date: frm.doc.transaction_date,
+				posting_date: frm.doc.transaction_date,
+				grand_total: frm.doc.rounded_total || frm.doc.grand_total,
+				base_grand_total: frm.doc.base_rounded_total || frm.doc.base_grand_total,
+			},
+			callback: function (r) {
+				if (
+					frm._janyu_payment_term_request_ids[cdn] !== request_id ||
+					!r.message ||
+					!locals[cdt] ||
+					!locals[cdt][cdn] ||
+					locals[cdt][cdn].payment_term !== row.payment_term
+				) {
+					return;
+				}
+
+				apply_payment_term_details(frm, cdt, cdn, r.message);
+
+				// ERPNext's standard handler makes the same request. Reconcile after
+				// all pending requests so its grand-total amount cannot win the race.
+				frappe.after_ajax(function () {
+					setTimeout(function () {
+						if (frm._janyu_payment_term_request_ids[cdn] === request_id) {
+							apply_payment_term_details(frm, cdt, cdn, r.message);
+						}
+					}, 0);
+				});
+			},
+		});
+	}
+
+	function apply_payment_term_details(frm, cdt, cdn, details) {
+		const row = locals[cdt] && locals[cdt][cdn];
+		if (!row) {
+			return;
+		}
+
+		with_payment_schedule_update(frm, function () {
+			[
+				"description",
+				"invoice_portion",
+				"discount_type",
+				"discount",
+				"mode_of_payment",
+				"due_date_based_on",
+				"credit_days",
+				"credit_months",
+				"discount_validity_based_on",
+				"discount_validity",
+				"due_date",
+				"discount_date",
+			].forEach(function (fieldname) {
+				if (Object.prototype.hasOwnProperty.call(details, fieldname)) {
+					set_payment_schedule_value(frm, cdt, cdn, fieldname, details[fieldname]);
+				}
+			});
+			set_payment_schedule_value(
+				frm,
+				cdt,
+				cdn,
+				"payment_amount",
+				calculate_manual_payment_amount(frm, row)
+			);
+			set_payment_schedule_base_amount(frm, cdt, cdn);
+		});
+	}
+
+	function set_payment_schedule_value(frm, cdt, cdn, fieldname, value) {
+		const row = locals[cdt] && locals[cdt][cdn];
+		if (!row || row[fieldname] === value) {
+			return;
+		}
+		frappe.model.set_value(cdt, cdn, fieldname, value);
+	}
+
+	function set_payment_schedule_base_amount(frm, cdt, cdn) {
+		const row = locals[cdt] && locals[cdt][cdn];
+		if (!row) {
+			return;
+		}
+		set_payment_schedule_value(
+			frm,
+			cdt,
+			cdn,
+			"base_payment_amount",
+			flt(flt(row.payment_amount) * flt(frm.doc.conversion_rate))
+		);
+	}
+
+	function with_payment_schedule_update(frm, callback) {
+		frm._janyu_updating_payment_schedule = true;
+		try {
+			callback();
+		} finally {
+			frm._janyu_updating_payment_schedule = false;
+			frm.refresh_field("payment_schedule");
+		}
+	}
+
+	function is_updating_payment_schedule(frm) {
+		return Boolean(frm._janyu_updating_payment_schedule);
+	}
+
+	function calculate_manual_invoice_portion(frm, row) {
+		const total = flt(frm.doc.total);
+		return total ? flt((flt(row.payment_amount) * 100) / total) : 0;
+	}
+
+	function calculate_manual_payment_amount(frm, row) {
+		return flt((flt(frm.doc.total) * flt(row.invoice_portion)) / 100);
+	}
 })();

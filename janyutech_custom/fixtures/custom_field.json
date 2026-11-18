@@ -32,6 +32,17 @@
   },
   {
     "doctype": "Custom Field",
+    "dt": "Purchase Order",
+    "fieldname": "custom_manual_payment_schedule",
+    "fieldtype": "Check",
+    "insert_after": "payment_terms_template",
+    "label": "Manual Payment Schedule",
+    "name": "Purchase Order-custom_manual_payment_schedule",
+    "default": "0",
+    "read_only": 0
+  },
+  {
+    "doctype": "Custom Field",
     "dt": "Purchase Receipt",
     "fieldname": "custom_purchase_req_no",
     "fieldtype": "Data",

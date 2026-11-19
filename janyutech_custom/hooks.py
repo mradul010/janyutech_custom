@@ -16,6 +16,7 @@ fixtures = [
                 [
                     "Purchase Order-custom_requested_by",
                     "Purchase Order-custom_purchase_req_no",
+                    "Purchase Order-custom_manual_payment_schedule",
                     "Purchase Receipt-custom_requested_by",
                     "Purchase Receipt-custom_purchase_req_no",
                 ],
@@ -45,6 +46,10 @@ doc_events = {
         ],
         "before_print": "janyutech_custom.company_address.set_quantity_uom_order",
     },
+}
+
+extend_doctype_class = {
+    "Purchase Order": "janyutech_custom.purchase_order.PurchaseOrderPaymentScheduleMixin",
 }
 
 doctype_js = {

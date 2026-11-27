@@ -1,0 +1,16 @@
+{
+ "disabled": 0,
+ "doctype": "Report",
+ "is_standard": "Yes",
+ "module": "Janyutech Custom",
+ "name": "Purchase Order Payment Tracking Report",
+ "report_name": "Purchase Order Payment Tracking Report",
+ "ref_doctype": "Purchase Order",
+ "report_type": "Script Report",
+ "roles": [
+  {"role": "Accounts User"},
+  {"role": "Accounts Manager"},
+  {"role": "Purchase User"},
+  {"role": "Purchase Manager"}
+ ]
+}
